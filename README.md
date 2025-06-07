@@ -45,14 +45,23 @@ Dataset ini terdiri dari dua file utama uaitu `movies.csv` dan `ratings.csv`.
 
 **Variabel pada Data**
 1. `movies.csv`: Berisi informasi mengenai setiap film.
-   - movieId: ID unik untuk setiap film. (Tipe Data: Integer)
-   - title: Judul film, beserta tahun rilis. (Tipe Data: String)
-   - genres: Genre film, dipisahkan oleh karakter |. (Tipe Data: String)
+   - `movieId`: ID unik untuk setiap film. (Tipe Data: Integer)
+   - `title`: Judul film, beserta tahun rilis. (Tipe Data: String)
+   - `genres`: Genre film, dipisahkan oleh karakter |. (Tipe Data: String)
 2. `ratings.csv`: Berisi informasi rating yang diberikan oleh pengguna.
-   - userId: ID unik untuk setiap pengguna. (Tipe Data: Integer)
-   - movieId: ID film yang diberi rating. (Tipe Data: Integer)
-   - rating: Rating yang diberikan, dalam skala 0.5 hingga 5.0. (Tipe Data: Float)
-   - timestamp: Waktu pemberian rating dalam format epoch time. (Tipe Data: Integer)
+   - `userId`: ID unik untuk setiap pengguna. (Tipe Data: Integer)
+   - `movieId`: ID film yang diberi rating. (Tipe Data: Integer)
+   - `rating`: Rating yang diberikan, dalam skala 0.5 hingga 5.0. (Tipe Data: Float)
+   - `timestamp`: Waktu pemberian rating dalam format epoch time. (Tipe Data: Integer)
+
+**Kondisi Awal Data (Missing Values & Duplikat)**
+
+Sebelum dilakukan proses preprocessing, dilakukan pengecekan terhadap kondisi awal dataset:
+
+- Data Duplikat
+  Berdasarkan pengecekan, tidak ditemukan data duplikat pada file `ratings.csv`. Namun, pada `movies.csv`, ditemukan beberapa film dengan judul yang sama meskipun movieId-nya berbeda. Hal ini diidentifikasi sebagai duplikasi judul yang perlu ditangani.
+- Missing Values
+  Pada pengecekan awal, tidak ditemukan missing values pada kedua file `movies.csv` dan `ratings.csv`. Namun, nilai `NaN` muncul setelah proses penggabungan kedua data, ketika rating untuk movieId yang tidak terdapat di file `movies.csv`, tepatnya terdapat 1868 baris yang missing pada fitur `title` dan `genres`.
 
 ### Exploratory Data Analysis (EDA)
 Analisis data eksplorasi dilakukan untuk memahami karakteristik data lebih dalam. Beberapa temuan utama antara lain:
@@ -73,11 +82,27 @@ Tahapan persiapan data sangat penting untuk memastikan model dapat dilatih denga
    - Menggabungkan dataframe ratings dan movies menjadi satu dataframe tunggal menggunakan movieId sebagai kunci.
    - Hal ini dilakukan agar setiap rating memiliki informasi lengkap tentang film yang dirating (judul dan genre), yang memudahkan analisis dan pemodelan selanjutnya.
   
-2. Persiapan untuk Content-Based Filtering
+2. Penanganan Duplikasi Judul Film
+   - Mengidentifikasi dan menghapus film dengan judul yang duplikat, dengan hanya mempertahankan entri pertama yang muncul.
+   - memastikan setiap judul film unik dalam dataset, sehingga tidak ada ambiguitas dalam rekomendasi.
+
+3. Pembersihan Judul Film
+   - Menghapus informasi tahun rilis (contoh: `(1995)`) dari setiap judul film menggunakan ekspresi reguler (regex).
+   - Hal ini dilakukan untuk mendapatkan judul film yang lebih bersih dan ringkas saat ditampilkan sebagai hasil rekomendasi.
+
+4. Penghapusan Kolom Tidak Relevan
+   - Kolom `timestamp` dari data rating dihapus.
+   - Hal ini dilakukan karena informasi waktu pemberian rating tidak digunakan dalam model Content-Based maupun Collaborative Filtering yang dikembangkan, sehingga dapat dihilangkan untuk menyederhanakan data.
+
+5. Penanganan Missing Values
+   - Setelah penggabungan dataset `movies` dan `ratings`, dilakukan pengecekan ulang terhadap missing values. Baris data yang mengandung nilai NaN (jika ada) akan dihapus dari dataframe.
+   - Hal ini dilakuakn karena Model machine learning tidak dapat memproses nilai NaN. Menghapus baris yang tidak lengkap adalah cara paling langsung untuk memastikan integritas data.
+
+6. Persiapan untuk Content-Based Filtering
    - Untuk model content-based, fitur utama yang digunakan adalah genres. Teks genre (contoh: "Adventure|Animation|Children") diubah menjadi representasi numerik menggunakan TF-IDF (Term Frequency-Inverse Document Frequency). TF-IDF akan membuat sebuah matriks di mana setiap baris mewakili sebuah film dan setiap kolom mewakili sebuah genre, dengan nilai yang menunjukkan seberapa penting genre tersebut bagi film tersebut.
    - Mesin tidak bisa memproses data teks secara langsung. TF-IDF adalah teknik yang efektif untuk mengubah data teks kategorikal seperti genre menjadi vektor fitur numerik yang dapat diukur kemiripannya.
 
-3. Persiapan untuk Collaborative Filtering
+7. Persiapan untuk Collaborative Filtering
    - Data pengguna dan film perlu diubah menjadi format yang dapat dipahami model. ID pengguna (userId) dan ID film (movieId) diubah menjadi indeks integer yang berurutan (misalnya, dari 0 hingga jumlah pengguna-1). Data kemudian dibagi menjadi data latih (training) dan data validasi (validation) untuk mengevaluasi model.
    - Model machine learning untuk collaborative filtering, seperti yang menggunakan Keras, memerlukan input dalam bentuk indeks numerik yang konsisten. Pembagian data latih dan validasi adalah praktik standar untuk mengukur kinerja model pada data yang belum pernah dilihat sebelumnya dan mencegah overfitting.
   
@@ -136,6 +161,11 @@ Pendekatan ini merekomendasikan film berdasarkan preferensi dari pengguna lain y
 
 Untuk mengukur kinerja model, berikut metrik evaluasi yang relevan dengan tugas sistem rekomendasi digunakan.
 
+- **Metrik: Precision@10**
+   Precision@k mengukur seberapa relevan rekomendasi yang diberikan dalam daftar top-k. Dalam kasus ini, kita menggunakan k=10. Metrik ini menjawab pertanyaan: "Dari 10 film yang direkomendasikan, berapa persen yang benar-benar relevan?". Sebuah film dianggap relevan jika genre utamanya sama dengan genre utama film yang menjadi dasar rekomendasi.
+
+  ![image](https://github.com/user-attachments/assets/37023cbc-de9b-4d30-b2ed-4c6c701200c8)
+  
 - **Root Mean Squared Error (RMSE):**
   Metrik ini digunakan untuk mengevaluasi akurasi prediksi rating pada model Collaborative Filtering. RMSE mengukur rata-rata magnitudo dari selisih (error) antara rating yang diprediksi oleh model dan rating yang sebenarnya diberikan oleh pengguna. Semakin kecil nilai RMSE, semakin baik kinerja model dalam memprediksi rating.
 
@@ -143,9 +173,10 @@ Untuk mengukur kinerja model, berikut metrik evaluasi yang relevan dengan tugas 
 
 ### Hasil evaluasi
 
-Model Collaborative Filtering: Pada proses pelatihan, model ini mencapai nilai RMSE pada data validasi sekitar 0.85 - 0.90. Nilai ini menunjukkan bahwa secara rata-rata, prediksi rating yang dihasilkan model memiliki selisih sekitar 0.85 hingga 0.90 poin dari rating sebenarnya pada skala 5 poin, yang merupakan hasil yang cukup baik.
+- Berdasarkan implementasi, model Content-Based Filtering mencapai nilai Precision@10 sekitar 0.0670. dan untuk model Collaborative Filtering pada proses pelatihanm, mencapai nilai RMSE pada data validasi sekitar 0.199. Nilai ini menunjukkan bahwa secara rata-rata, prediksi rating yang dihasilkan model memiliki selisih sekitar 0.19 poin dari rating sebenarnya pada skala 5 poin, yang merupakan hasil yang cukup baik.
 
 **Referensi:**
 
 [1] A. T. Core, "The Netflix Recommender System: A Case Study," Medium, 2022. [Online]. Available: https://medium.com/@its_TusharG/the-netflix-recommender-system-a-case-study-f495b5978197.
+
 [2] C. A. Gomez-Uribe and N. Hunt, "The Netflix Recommender System: Algorithms, Business Value, and Innovation," ACM Transactions on Management Information Systems (TMIS), vol. 6, no. 4, pp. 1-19, 2016.
