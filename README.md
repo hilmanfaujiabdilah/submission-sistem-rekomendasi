@@ -143,7 +143,7 @@ Pendekatan ini merekomendasikan film berdasarkan preferensi dari pengguna lain y
       - Model dilatih untuk meminimalkan error antara rating yang diprediksi dan rating yang sebenarnya.
 
    2. Hasil Top-N Recommendation
-      Berikut adalah contoh output rekomendasi untuk UserId  
+      Berikut adalah contoh output rekomendasi untuk UserId 482 
 
       ![image](https://github.com/user-attachments/assets/0501dae1-5115-49f4-adb9-78114cefebf5)
 
