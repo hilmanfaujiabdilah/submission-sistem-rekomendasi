@@ -81,14 +81,14 @@ Tahapan persiapan data sangat penting untuk memastikan model dapat dilatih denga
 1. Penggabungan Data
    - Menggabungkan dataframe ratings dan movies menjadi satu dataframe tunggal menggunakan movieId sebagai kunci.
    - Hal ini dilakukan agar setiap rating memiliki informasi lengkap tentang film yang dirating (judul dan genre), yang memudahkan analisis dan pemodelan selanjutnya.
-  
-2. Penanganan Duplikasi Judul Film
-   - Mengidentifikasi dan menghapus film dengan judul yang duplikat, dengan hanya mempertahankan entri pertama yang muncul.
-   - memastikan setiap judul film unik dalam dataset, sehingga tidak ada ambiguitas dalam rekomendasi.
 
-3. Pembersihan Judul Film
+2. Pembersihan Judul Film
    - Menghapus informasi tahun rilis (contoh: `(1995)`) dari setiap judul film menggunakan ekspresi reguler (regex).
    - Hal ini dilakukan untuk mendapatkan judul film yang lebih bersih dan ringkas saat ditampilkan sebagai hasil rekomendasi.
+
+3. Penanganan Duplikasi Judul Film
+   - Mengidentifikasi dan menghapus film dengan judul yang duplikat, dengan hanya mempertahankan entri pertama yang muncul.
+   - memastikan setiap judul film unik dalam dataset, sehingga tidak ada ambiguitas dalam rekomendasi.
 
 4. Penghapusan Kolom Tidak Relevan
    - Kolom `timestamp` dari data rating dihapus.
@@ -143,9 +143,10 @@ Pendekatan ini merekomendasikan film berdasarkan preferensi dari pengguna lain y
       - Model dilatih untuk meminimalkan error antara rating yang diprediksi dan rating yang sebenarnya.
 
    2. Hasil Top-N Recommendation
-      Berikut adalah contoh output rekomendasi untuk User ID 169
+      Berikut adalah contoh output rekomendasi untuk UserId  
 
-      ![image](https://github.com/user-attachments/assets/54ea3bf1-852a-4629-a824-6a4f922fc28a)
+      ![image](https://github.com/user-attachments/assets/0501dae1-5115-49f4-adb9-78114cefebf5)
+
 
       Rekomendasi ini berisi film-film yang mendapatkan rating tinggi secara universal dan sering dianggap sebagai film drama atau komedi, yang menunjukkan bahwa model berhasil menangkap pola preferensi umum.
 
