@@ -78,33 +78,26 @@ Analisis data eksplorasi dilakukan untuk memahami karakteristik data lebih dalam
 ## Data Preparation
 Tahapan persiapan data sangat penting untuk memastikan model dapat dilatih dengan baik. Berikut adalah langkah-langkah yang dilakukan:
 
-1. Penggabungan Data
-   - Menggabungkan dataframe ratings dan movies menjadi satu dataframe tunggal menggunakan movieId sebagai kunci.
-   - Hal ini dilakukan agar setiap rating memiliki informasi lengkap tentang film yang dirating (judul dan genre), yang memudahkan analisis dan pemodelan selanjutnya.
+1. Pembersihan Judul Film
+   Informasi tahun rilis (contoh: (1995)) dihapus dari setiap judul film menggunakan ekspresi reguler (regex). Ini dilakukan untuk mendapatkan judul yang lebih bersih dan ringkas saat ditampilkan sebagai hasil rekomendasi.
+2. Penanganan Duplikasi Judul Film
+   Setelah tahun rilis dihapus, judul film yang duplikat diidentifikasi dan dihapus, dengan hanya mempertahankan entri pertama yang muncul. Langkah ini memastikan setiap judul film bersifat unik, sehingga tidak ada ambiguitas dalam rekomendasi.
+3. Pembersihan Karakter "|" pada `genres`
+   Mengganti karakter `|` pada kolom `genres` dengan spasi untuk memisahkan setiap genre (misal, "Adventure|Animation" menjadi "Adventure Animation").
+4. Penggabungan dataset `ratings` dan `moviesId`
+   Menggabungkan DataFrame `ratings` dengan movies (yang telah diproses) berdasarkan `movieId` menggunakan left join.
+5. Penghapusan kolom `timestamp` karena tidak penting
+   Kolom `timestamp` dari data rating dihapus. Hal ini dilakukan karena informasi waktu pemberian rating tidak digunakan dalam model Content-Based maupun Collaborative Filtering yang dikembangkan, sehingga dapat dihilangkan untuk menyederhanakan data.
+6. Penanganan Missing Values
+   Setelah penggabungan dataset `movies` dan `ratings`, dilakukan pengecekan ulang terhadap missing values. Baris data yang mengandung nilai NaN (jika ada) akan dihapus dari dataframe. Hal ini dilakuakn karena Model machine learning tidak dapat memproses nilai NaN. Menghapus baris yang tidak lengkap adalah cara paling langsung untuk memastikan integritas data.
+7. Restrukturisasi Data Film ke DataFrame Baru
+   Mengekstrak kolom `movieId`, `title`, dan `genres` menjadi list, kemudian membuat DataFrame movies_new yang rapi dari list tersebut untuk persiapan pemodelan.
+8. Persiapan Data untuk Content-Based Filtering
+   - Fitur utama yang digunakan adalah genres. Teks genre (contoh: "Adventure Animation Children") diubah menjadi representasi numerik menggunakan TF-IDF (Term Frequency-Inverse Document Frequency). TF-IDF membuat sebuah matriks di mana setiap baris mewakili film dan setiap kolom mewakili genre, dengan nilai yang menunjukkan seberapa penting genre tersebut bagi film.
 
-2. Pembersihan Judul Film
-   - Menghapus informasi tahun rilis (contoh: `(1995)`) dari setiap judul film menggunakan ekspresi reguler (regex).
-   - Hal ini dilakukan untuk mendapatkan judul film yang lebih bersih dan ringkas saat ditampilkan sebagai hasil rekomendasi.
-
-3. Penanganan Duplikasi Judul Film
-   - Mengidentifikasi dan menghapus film dengan judul yang duplikat, dengan hanya mempertahankan entri pertama yang muncul.
-   - memastikan setiap judul film unik dalam dataset, sehingga tidak ada ambiguitas dalam rekomendasi.
-
-4. Penghapusan Kolom Tidak Relevan
-   - Kolom `timestamp` dari data rating dihapus.
-   - Hal ini dilakukan karena informasi waktu pemberian rating tidak digunakan dalam model Content-Based maupun Collaborative Filtering yang dikembangkan, sehingga dapat dihilangkan untuk menyederhanakan data.
-
-5. Penanganan Missing Values
-   - Setelah penggabungan dataset `movies` dan `ratings`, dilakukan pengecekan ulang terhadap missing values. Baris data yang mengandung nilai NaN (jika ada) akan dihapus dari dataframe.
-   - Hal ini dilakuakn karena Model machine learning tidak dapat memproses nilai NaN. Menghapus baris yang tidak lengkap adalah cara paling langsung untuk memastikan integritas data.
-
-6. Persiapan untuk Content-Based Filtering
-   - Untuk model content-based, fitur utama yang digunakan adalah genres. Teks genre (contoh: "Adventure|Animation|Children") diubah menjadi representasi numerik menggunakan TF-IDF (Term Frequency-Inverse Document Frequency). TF-IDF akan membuat sebuah matriks di mana setiap baris mewakili sebuah film dan setiap kolom mewakili sebuah genre, dengan nilai yang menunjukkan seberapa penting genre tersebut bagi film tersebut.
-   - Mesin tidak bisa memproses data teks secara langsung. TF-IDF adalah teknik yang efektif untuk mengubah data teks kategorikal seperti genre menjadi vektor fitur numerik yang dapat diukur kemiripannya.
-
-7. Persiapan untuk Collaborative Filtering
-   - Data pengguna dan film perlu diubah menjadi format yang dapat dipahami model. ID pengguna (userId) dan ID film (movieId) diubah menjadi indeks integer yang berurutan (misalnya, dari 0 hingga jumlah pengguna-1). Data kemudian dibagi menjadi data latih (training) dan data validasi (validation) untuk mengevaluasi model.
-   - Model machine learning untuk collaborative filtering, seperti yang menggunakan Keras, memerlukan input dalam bentuk indeks numerik yang konsisten. Pembagian data latih dan validasi adalah praktik standar untuk mengukur kinerja model pada data yang belum pernah dilihat sebelumnya dan mencegah overfitting.
+9. Persiapan Data untuk Collaborative Filtering
+    - Normalisasi Rating: Nilai rating yang semula berskala 0.5 hingga 5.0 diubah (dinormalisasi) menjadi skala 0 hingga 1.
+    - Pembagian Data: Data yang telah diproses kemudian dibagi menjadi data latih (training) dan data validasi (validation) untuk mengevaluasi performa model pada data yang belum pernah dilihat sebelumnya dan mencegah overfitting.
   
 ## Modeling and Result
 Dua model sistem rekomendasi dikembangkan untuk menyelesaikan masalah ini.
